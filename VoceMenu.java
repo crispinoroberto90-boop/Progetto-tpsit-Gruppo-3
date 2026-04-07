@@ -1,9 +1,9 @@
 // Classe per le voci del menu, tipo un caffè o un panino
-public class MenuItem {
+public class VoceMenu{
     private String nome;
     private double prezzo;
 
-    public MenuItem(String nome, double prezzo) {
+    public VoceMenu(String nome, double prezzo) {
         this.nome = nome;
         this.prezzo = prezzo;
     }

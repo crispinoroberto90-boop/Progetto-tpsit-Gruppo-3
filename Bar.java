@@ -16,7 +16,7 @@ public class Bar {
     private Map<String, Integer> inventario; // Prodotto -> Quantità
 
     // Attributi per personale e turni (RF5)
-    private List<Employee> dipendenti;
+    private List<Dipendente> dipendenti;
 
     // Attributi per ordini (RF1)
     private List<Order> ordini;
@@ -86,17 +86,17 @@ public class Bar {
     }
 
     // Metodo per gestire personale (RF5)
-    public void aggiungiDipendente(Employee dipendente) {
+    public void aggiungiDipendente(Dipendente dipendente) {
         dipendenti.add(dipendente);
     }
 
     // Metodo per rimuovere personale (RF5)
-    public void rimuoviDipendente(Employee dipendente) {
+    public void rimuoviDipendente(Dipendente dipendente) {
         dipendenti.remove(dipendente);
     }
 
     // Metodo per assegnare turni (RF5) - semplificato
-    public void assegnaTurno(Employee dipendente, String turno) {
+    public void assegnaTurno(Dipendente dipendente, String turno) {
         dipendente.setTurno(turno);
     }
 
@@ -142,7 +142,7 @@ public class Bar {
         return inventario;
     }
 
-    public List<Employee> getDipendenti() {
+    public List<Dipendente> getDipendenti() {
         return dipendenti;
     }
 
@@ -150,5 +150,70 @@ public class Bar {
         return ordini;
     }
 
+    // Metodo per calcolare il totale di un ordine in base ai prezzi del menu
+    public double calcolaTotaleOrdine(Order ordine) {
+        double totale = 0;
+        for (OrderItem elemento : ordine.getElementi()) {
+            // Cerchiamo il prezzo nel menu
+            for (MenuItem voce : vociMenu) {
+                if (voce.getNome().equalsIgnoreCase(elemento.getNomeProdotto())) {
+                    totale += voce.getPrezzo() * elemento.getQuantita();
+                    break;
+                }
+            }
+        }
+        return totale;
+    }
+
+    // Metodo per mostrare i dettagli di un ordine
+    public void mostraDettagliOrdine(Order ordine) {
+        System.out.println("\n========== DETTAGLI ORDINE ==========");
+        System.out.println("ID Ordine: " + ordine.getId());
+        System.out.println("Tipo: " + ordine.getTipo());
+        System.out.println("Data/Ora: " + ordine.getDataOraFormattata());
+        System.out.println("Elementi:");
+        for (OrderItem elem : ordine.getElementi()) {
+            System.out.println("  - " + elem.getNomeProdotto() + " x" + elem.getQuantita());
+        }
+        System.out.println("Totale: " + String.format("%.2f", calcolaTotaleOrdine(ordine)) + "€");
+        System.out.println("=====================================\n");
+    }
+
+    // Metodo per mostrare il riepilogo dell'ordine in costruzione
+    public void mostraRiepilogoOrdineInCostruzione(Order ordine) {
+        System.out.println("\n========== TUO ORDINE ==========");
+        System.out.println("Tipo: " + ordine.getTipo());
+        if (ordine.getElementi().isEmpty()) {
+            System.out.println("(nessun elemento ancora)");
+        } else {
+            System.out.println("Elementi:");
+            for (OrderItem elem : ordine.getElementi()) {
+                System.out.println("  - " + elem.getNomeProdotto() + " x" + elem.getQuantita());
+            }
+            System.out.println("Totale parziale: " + String.format("%.2f", calcolaTotaleOrdine(ordine)) + "€");
+        }
+        System.out.println("================================");
+        System.out.println("6 - Conferma e registra ordine");
+        System.out.println("5 - Continua ad aggiungere elementi");
+        System.out.println("================================\n");
+    }
+
+    // Metodo per mostrare il riepilogo di tutti gli ordini
+    public void mostraRiepilogoOrdini() {
+        if (ordini.isEmpty()) {
+            System.out.println("Nessun ordine registrato!");
+            return;
+        }
+        System.out.println("\n========== RIEPILOGO ORDINI ==========");
+        double totaleComplessivo = 0;
+        for (Order ordine : ordini) {
+            double totOrdine = calcolaTotaleOrdine(ordine);
+            System.out.println("Ordine #" + ordine.getId() + " [" + ordine.getTipo() + "] - " + ordine.getDataOraFormattata() + " - Tot: " + String.format("%.2f", totOrdine) + "€");
+            totaleComplessivo += totOrdine;
+        }
+        System.out.println("--------");
+        System.out.println("Totale ordini: " + String.format("%.2f", totaleComplessivo) + "€");
+        System.out.println("======================================\n");
+    }
 
 }

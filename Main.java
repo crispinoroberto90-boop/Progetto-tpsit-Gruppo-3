@@ -1,9 +1,13 @@
 // File di prova per testare il sistema Bar con menu interattivo
 // Tipo, scegli cosa fare e vediamo se funziona
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    // PASSWORD DI SICUREZZA PER OPERAZIONI SENSIBILI (puoi cambiarla qui)
+    private static final String PASSWORD_SICUREZZA = "barbello";
+    
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Bar bar = new Bar();
@@ -25,8 +29,11 @@ public class Main {
             System.out.println("10. Aggiungi scorte inventario");
             System.out.println("11. Mostra menu attuale");
             System.out.println("12. Mostra dipendenti");
-            System.out.println("13. Mostra ordini");
+            System.out.println("13. Mostra numero ordini");
             System.out.println("14. Mostra inventario");
+            System.out.println("15. Mostra riepilogo ordini (totali)");
+            System.out.println("16. Mostra dettagli ordine specifico");
+            System.out.println("17. Carica menu del giorno");
             System.out.println("0. Esci");
 
             System.out.print("Scegli: ");
@@ -35,6 +42,10 @@ public class Main {
 
             switch (scelta) {
                 case 1:
+                    // Operazione sensibile - richiede password
+                    if (!verificaPassword(scanner)) {
+                        break;
+                    }
                     System.out.print("Nome voce: ");
                     String nomeVoce = scanner.nextLine();
                     System.out.print("Prezzo: ");
@@ -63,27 +74,93 @@ public class Main {
                     System.out.print("Tipo ordine (banco/tavolo): ");
                     String tipo = scanner.nextLine();
                     ordineCorrente = new Order(tipo);
-                    System.out.println("Ordine creato!");
+                    System.out.println("Ordine creato! Tipo: " + tipo);
+                    
+                    // Loop per aggiungere elementi all'ordine
+                    boolean aggiungiAltri = true;
+                    while (aggiungiAltri) {
+                        // Mostra il menu del giorno e fa scegliere
+                        List<MenuItem> menuGiorno = MenuGiorno.getMenuDelGiorno();
+                        System.out.println("\nScegli dal menu del giorno:");
+                        for (int i = 0; i < menuGiorno.size(); i++) {
+                            MenuItem item = menuGiorno.get(i);
+                            System.out.println((i + 1) + ". " + item.getNome() + " (" + item.getPrezzo() + "€)");
+                        }
+                        System.out.print("Scegli numero prodotto (0 per tornare al menu): ");
+                        int sceltaProd = scanner.nextInt();
+                        
+                        if (sceltaProd == 0) {
+                            // Torna al menu principale
+                            aggiungiAltri = false;
+                            break;
+                        }
+                        
+                        if (sceltaProd > 0 && sceltaProd <= menuGiorno.size()) {
+                            MenuItem itemScelto = menuGiorno.get(sceltaProd - 1);
+                            System.out.print("Quantita: ");
+                            int quant = scanner.nextInt();
+                            ordineCorrente.aggiungiElemento(new OrderItem(itemScelto.getNome(), quant));
+                            System.out.println("Elemento aggiunto: " + itemScelto.getNome() + " x" + quant);
+                            
+                            // Mostra il riepilogo dell'ordine in costruzione
+                            bar.mostraRiepilogoOrdineInCostruzione(ordineCorrente);
+                            
+                            // Chiedi se continuare o confermare
+                            System.out.print("Premi 5 per aggiungere altri elementi, 6 per confermare e registrare: ");
+                            int sceltaContinua = scanner.nextInt();
+                            
+                            if (sceltaContinua == 6) {
+                                // Registra l'ordine
+                                if (!ordineCorrente.getElementi().isEmpty()) {
+                                    bar.registraOrdine(ordineCorrente);
+                                    System.out.println("Ordine #" + ordineCorrente.getId() + " registrato!");
+                                    ordineCorrente = null;
+                                    aggiungiAltri = false;
+                                }
+                            }
+                            // Se premi 5, il loop continua
+                        } else {
+                            System.out.println("Scelta non valida!");
+                        }
+                    }
                     break;
                 case 5:
                     if (ordineCorrente == null) {
                         System.out.println("Prima crea un ordine!");
                         break;
                     }
-                    System.out.print("Nome prodotto: ");
-                    String prod = scanner.nextLine();
-                    System.out.print("Quantita: ");
-                    int quant = scanner.nextInt();
-                    ordineCorrente.aggiungiElemento(new OrderItem(prod, quant));
-                    System.out.println("Elemento aggiunto!");
+                    // Mostra il menu del giorno e fa scegliere
+                    List<MenuItem> menuGiorno = MenuGiorno.getMenuDelGiorno();
+                    System.out.println("\nScegli dal menu del giorno:");
+                    for (int i = 0; i < menuGiorno.size(); i++) {
+                        MenuItem item = menuGiorno.get(i);
+                        System.out.println((i + 1) + ". " + item.getNome() + " (" + item.getPrezzo() + "€)");
+                    }
+                    System.out.print("Scegli numero prodotto (0 per annullare): ");
+                    int sceltaProd = scanner.nextInt();
+                    if (sceltaProd > 0 && sceltaProd <= menuGiorno.size()) {
+                        MenuItem itemScelto = menuGiorno.get(sceltaProd - 1);
+                        System.out.print("Quantita: ");
+                        int quant = scanner.nextInt();
+                        ordineCorrente.aggiungiElemento(new OrderItem(itemScelto.getNome(), quant));
+                        System.out.println("Elemento aggiunto: " + itemScelto.getNome() + " x" + quant);
+                        // Mostra il riepilogo dell'ordine in costruzione
+                        bar.mostraRiepilogoOrdineInCostruzione(ordineCorrente);
+                    } else if (sceltaProd != 0) {
+                        System.out.println("Scelta non valida!");
+                    }
                     break;
                 case 6:
                     if (ordineCorrente == null) {
                         System.out.println("Nessun ordine corrente!");
                         break;
                     }
+                    if (ordineCorrente.getElementi().isEmpty()) {
+                        System.out.println("Errore: l'ordine è vuoto! Aggiungi almeno un elemento prima di registrare.");
+                        break;
+                    }
                     bar.registraOrdine(ordineCorrente);
-                    System.out.println("Ordine registrato!");
+                    System.out.println("Ordine #" + ordineCorrente.getId() + " registrato!");
                     ordineCorrente = null;
                     break;
                 case 7:
@@ -103,6 +180,10 @@ public class Main {
                     bar.generaReportIncassi();
                     break;
                 case 10:
+                    // Operazione sensibile - richiede password
+                    if (!verificaPassword(scanner)) {
+                        break;
+                    }
                     System.out.print("Prodotto: ");
                     String prodInv = scanner.nextLine();
                     System.out.print("Quantita: ");
@@ -111,15 +192,13 @@ public class Main {
                     System.out.println("Scorte aggiunte!");
                     break;
                 case 11:
-                    System.out.println("Menu:");
-                    for (MenuItem v : bar.getVociMenu()) {
-                        System.out.println("- " + v.getNome() + ": " + v.getPrezzo() + "€");
-                    }
+                    // Mostra il menu del giorno in modo bello
+                    MenuGiorno.stampaMenuDelGiorno();
                     break;
                 case 12:
                     System.out.println("Dipendenti:");
-                    for (Dipendente d : bar.getDipendenti()) {
-                        System.out.println("- " + d.getNome() + " (" + d.getTurno() + ")");
+                    for (Object d : bar.getDipendenti()) {
+                        System.out.println("- " + ((Dipendente) d).getNome() + " (" + ((Dipendente) d).getTurno() + ")");
                     }
                     break;
                 case 13:
@@ -129,6 +208,45 @@ public class Main {
                     System.out.println("Inventario:");
                     bar.getInventario().forEach((p, q) -> System.out.println("- " + p + ": " + q));
                     break;
+                case 15:
+                    bar.mostraRiepilogoOrdini();
+                    break;
+                case 16:
+                    if (bar.getOrdini().isEmpty()) {
+                        System.out.println("Nessun ordine disponibile!");
+                    } else {
+                        System.out.println("Ordini disponibili:");
+                        for (Order o : bar.getOrdini()) {
+                            System.out.println("ID: " + o.getId() + " - " + o.getDataOraFormattata());
+                        }
+                        System.out.print("Inserisci ID ordine: ");
+                        int idOrdine = scanner.nextInt();
+                        boolean trovato = false;
+                        for (Order o : bar.getOrdini()) {
+                            if (o.getId() == idOrdine) {
+                                bar.mostraDettagliOrdine(o);
+                                trovato = true;
+                                break;
+                            }
+                        }
+                        if (!trovato) {
+                            System.out.println("Ordine non trovato!");
+                        }
+                    }
+                    break;
+                case 17:
+                    // Operazione sensibile - richiede password
+                    if (!verificaPassword(scanner)) {
+                        break;
+                    }
+                    // Carica il menu del giorno nel bar (svuota il menu attuale e carica quello del giorno)
+                    bar.getVociMenu().clear(); // Svuota il menu precedente
+                    List<MenuItem> menuDelGiorno = MenuGiorno.getMenuDelGiorno();
+                    for (MenuItem voce : menuDelGiorno) {
+                        bar.aggiungiVoceMenu(voce);
+                    }
+                    System.out.println("Menu del giorno caricato! (" + menuDelGiorno.size() + " voci)");
+                    break;
                 case 0:
                     System.out.println("Ciao!");
                     scanner.close();
@@ -136,6 +254,19 @@ public class Main {
                 default:
                     System.out.println("Scelta non valida!");
             }
+        }
+    }
+    
+    // Metodo per verificare la password di sicurezza
+    private static boolean verificaPassword(Scanner scanner) {
+        System.out.print("Inserisci password di sicurezza: ");
+        String passwordInserita = scanner.nextLine();
+        if (passwordInserita.equals(PASSWORD_SICUREZZA)) {
+            System.out.println("Password corretta!");
+            return true;
+        } else {
+            System.out.println("Password errata! Operazione annullata.");
+            return false;
         }
     }
 }
