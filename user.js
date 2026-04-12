@@ -1,5 +1,25 @@
 const API_BASE_URL = "http://localhost:8080/api";
 
+const HARD_CODED_MENU = [
+    { id: 1, nome: 'Caffe', prezzo: 1.50, categoria: 'Bevande' },
+    { id: 2, nome: 'Cappuccino', prezzo: 2.00, categoria: 'Bevande' },
+    { id: 3, nome: 'Espresso', prezzo: 1.00, categoria: 'Bevande' },
+    { id: 4, nome: 'Latte', prezzo: 2.50, categoria: 'Bevande' },
+    { id: 5, nome: 'Acqua', prezzo: 0.50, categoria: 'Bevande' },
+    { id: 6, nome: 'Bibita', prezzo: 2.00, categoria: 'Bevande' },
+    { id: 7, nome: 'Panino Prosciutto', prezzo: 4.00, categoria: 'Panini' },
+    { id: 8, nome: 'Panino Formaggio', prezzo: 3.50, categoria: 'Panini' },
+    { id: 9, nome: 'Panino Mortadella', prezzo: 3.80, categoria: 'Panini' },
+    { id: 10, nome: 'Panino Pollo', prezzo: 4.50, categoria: 'Panini' },
+    { id: 11, nome: 'Cornetto', prezzo: 1.20, categoria: 'Dolci' },
+    { id: 12, nome: 'Brioche', prezzo: 1.50, categoria: 'Dolci' },
+    { id: 13, nome: 'Torta', prezzo: 3.00, categoria: 'Dolci' },
+    { id: 14, nome: 'Biscotti', prezzo: 1.00, categoria: 'Dolci' },
+    { id: 15, nome: 'Pizza al taglio', prezzo: 2.50, categoria: 'Snack' },
+    { id: 16, nome: 'Focaccia', prezzo: 2.00, categoria: 'Snack' },
+    { id: 17, nome: 'Taralli', prezzo: 1.50, categoria: 'Snack' }
+];
+
 let menuItems = [];
 let cart = [];
 
@@ -11,41 +31,35 @@ function formatCurrency(amount) {
 }
 
 async function loadMenuForUser() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/menu`);
-        menuItems = await response.json();
-        document.getElementById('menuCount').textContent = menuItems.length;
+    menuItems = HARD_CODED_MENU;
+    document.getElementById('menuCount').textContent = menuItems.length;
 
-        const menuGrid = document.getElementById('menuGrid');
-        menuGrid.innerHTML = '';
+    const menuGrid = document.getElementById('menuGrid');
+    menuGrid.innerHTML = '';
 
-        if (menuItems.length === 0) {
-            menuGrid.innerHTML = `
-                <div class="empty-state" style="width:100%; padding: 40px; text-align:center;">
-                    <div class="empty-state-icon">😔</div>
-                    <p>Il menu è vuoto. Attendi che il manager aggiunga i prodotti.</p>
-                </div>
-            `;
-            return;
-        }
-
-        menuItems.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'menu-card';
-            card.innerHTML = `
-                <div class="category">${item.categoria}</div>
-                <h4>${item.nome}</h4>
-                <div class="price">${formatCurrency(item.prezzo)}</div>
-                <div class="menu-card-actions">
-                    <button class="btn-primary" onclick="addToCart(${item.id})">Aggiungi</button>
-                </div>
-            `;
-            menuGrid.appendChild(card);
-        });
-    } catch (error) {
-        console.error('Errore caricamento menu utente:', error);
-        showNotification('❌ Impossibile caricare il menu', 'error');
+    if (menuItems.length === 0) {
+        menuGrid.innerHTML = `
+            <div class="empty-state" style="width:100%; padding: 40px; text-align:center;">
+                <div class="empty-state-icon">😔</div>
+                <p>Il menu è vuoto. Attendi che il manager aggiunga i prodotti.</p>
+            </div>
+        `;
+        return;
     }
+
+    menuItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'menu-card';
+        card.innerHTML = `
+            <div class="category">${item.categoria}</div>
+            <h4>${item.nome}</h4>
+            <div class="price">${formatCurrency(item.prezzo)}</div>
+            <div class="menu-card-actions">
+                <button class="btn-primary" onclick="addToCart(${item.id})">Aggiungi</button>
+            </div>
+        `;
+        menuGrid.appendChild(card);
+    });
 }
 
 function addToCart(itemId) {

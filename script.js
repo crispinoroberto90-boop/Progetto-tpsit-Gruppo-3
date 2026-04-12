@@ -22,6 +22,26 @@ const barData = {
     ordineCorrente: null
 };
 
+const HARD_CODED_MENU = [
+    { id: 1, nome: 'Caffe', prezzo: 1.50, categoria: 'Bevande' },
+    { id: 2, nome: 'Cappuccino', prezzo: 2.00, categoria: 'Bevande' },
+    { id: 3, nome: 'Espresso', prezzo: 1.00, categoria: 'Bevande' },
+    { id: 4, nome: 'Latte', prezzo: 2.50, categoria: 'Bevande' },
+    { id: 5, nome: 'Acqua', prezzo: 0.50, categoria: 'Bevande' },
+    { id: 6, nome: 'Bibita', prezzo: 2.00, categoria: 'Bevande' },
+    { id: 7, nome: 'Panino Prosciutto', prezzo: 4.00, categoria: 'Panini' },
+    { id: 8, nome: 'Panino Formaggio', prezzo: 3.50, categoria: 'Panini' },
+    { id: 9, nome: 'Panino Mortadella', prezzo: 3.80, categoria: 'Panini' },
+    { id: 10, nome: 'Panino Pollo', prezzo: 4.50, categoria: 'Panini' },
+    { id: 11, nome: 'Cornetto', prezzo: 1.20, categoria: 'Dolci' },
+    { id: 12, nome: 'Brioche', prezzo: 1.50, categoria: 'Dolci' },
+    { id: 13, nome: 'Torta', prezzo: 3.00, categoria: 'Dolci' },
+    { id: 14, nome: 'Biscotti', prezzo: 1.00, categoria: 'Dolci' },
+    { id: 15, nome: 'Pizza al taglio', prezzo: 2.50, categoria: 'Snack' },
+    { id: 16, nome: 'Focaccia', prezzo: 2.00, categoria: 'Snack' },
+    { id: 17, nome: 'Taralli', prezzo: 1.50, categoria: 'Snack' }
+];
+
 // ============================================
 // FUNZIONI DI UTILITÀ
 // ============================================
@@ -33,7 +53,7 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
-function switchTab(tabName) {
+function switchTab(event, tabName) {
     // Nascondi tutti i tab content
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
@@ -51,7 +71,11 @@ function switchTab(tabName) {
     }
 
     // Aggiungi active al bottone
-    event.target.closest('.tab-btn').classList.add('active');
+    const button = event.currentTarget || event.target;
+    const activeButton = button.closest('.tab-btn');
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
 }
 
 function toggleElement(elementId) {
@@ -66,34 +90,27 @@ function toggleElement(elementId) {
 // ============================================
 
 async function loadMenu() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/menu`);
-        barData.menu = await response.json();
-        
-        const menuGrid = document.getElementById('menuGrid');
-        menuGrid.innerHTML = '';
+    barData.menu = HARD_CODED_MENU;
+    const menuGrid = document.getElementById('menuGrid');
+    menuGrid.innerHTML = '';
 
-        barData.menu.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'menu-card';
-            card.innerHTML = `
-                <div class="category">${item.categoria}</div>
-                <h4>${item.nome}</h4>
-                <div class="price">${formatCurrency(item.prezzo)}</div>
-                <div class="menu-card-actions">
-                    <button class="btn-primary" onclick="addToCart({id: ${item.id}, nome: '${item.nome}', prezzo: ${item.prezzo}})">
-                        + Aggiungi
-                    </button>
-                </div>
-            `;
-            menuGrid.appendChild(card);
-        });
+    barData.menu.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'menu-card';
+        card.innerHTML = `
+            <div class="category">${item.categoria}</div>
+            <h4>${item.nome}</h4>
+            <div class="price">${formatCurrency(item.prezzo)}</div>
+            <div class="menu-card-actions">
+                <button class="btn-primary" onclick="addToCart({id: ${item.id}, nome: '${item.nome}', prezzo: ${item.prezzo}})">
+                    + Aggiungi
+                </button>
+            </div>
+        `;
+        menuGrid.appendChild(card);
+    });
 
-        loadProductSelect();
-    } catch (error) {
-        console.error('Errore caricamento menu:', error);
-        showNotification('❌ Errore nel caricamento del menu', 'error');
-    }
+    loadProductSelect();
 }
 
 function loadProductSelect() {
@@ -106,46 +123,6 @@ function loadProductSelect() {
         option.textContent = `${item.nome} (${formatCurrency(item.prezzo)})`;
         select.appendChild(option);
     });
-}
-
-function toggleAddMenu() {
-    const form = document.getElementById('addMenuForm');
-    form.classList.toggle('hidden');
-    if (!form.classList.contains('hidden')) {
-        document.getElementById('menuNome').focus();
-    }
-}
-
-function addMenuItem(event) {
-    event.preventDefault();
-    
-    const nome = document.getElementById('menuNome').value;
-    const prezzo = parseFloat(document.getElementById('menuPrezzo').value);
-
-    if (nome && prezzo > 0) {
-        fetch(`${API_BASE_URL}/menu`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                nome: nome,
-                prezzo: prezzo,
-                categoria: "Custom"
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('addMenuForm').reset();
-            toggleAddMenu();
-            loadMenu();
-            showNotification(`✅ Voce "${nome}" aggiunta al menu!`, 'success');
-        })
-        .catch(error => {
-            console.error('Errore:', error);
-            showNotification('❌ Errore nell\'aggiunta della voce', 'error');
-        });
-    }
 }
 
 // ============================================
@@ -442,42 +419,6 @@ async function loadDipendenti() {
         });
     } catch (error) {
         console.error('Errore caricamento dipendenti:', error);
-    }
-}
-
-function toggleAddDipendente() {
-    const form = document.getElementById('addDipForm');
-    form.classList.toggle('hidden');
-}
-
-function addDipendente(event) {
-    event.preventDefault();
-
-    const nome = document.getElementById('dipNome').value;
-    const turno = document.getElementById('dipTurno').value;
-
-    if (nome && turno) {
-        fetch(`${API_BASE_URL}/dipendenti`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                nome: nome,
-                turno: turno
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('addDipForm').reset();
-            toggleAddDipendente();
-            loadDipendenti();
-            showNotification(`✅ Dipendente "${nome}" aggiunto!`, 'success');
-        })
-        .catch(error => {
-            console.error('Errore:', error);
-            showNotification('❌ Errore nell\'aggiunta del dipendente', 'error');
-        });
     }
 }
 

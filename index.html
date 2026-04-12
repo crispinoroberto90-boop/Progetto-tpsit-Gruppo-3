@@ -30,22 +30,22 @@
 
         <!-- Navigation Tabs -->
         <nav class="tabs-nav">
-            <button class="tab-btn active" onclick="switchTab('menu')">
+            <button class="tab-btn active" onclick="switchTab(event,'menu')">
                 <span class="icon">📋</span> Menu
             </button>
-            <button class="tab-btn" onclick="switchTab('ordini')">
+            <button class="tab-btn" onclick="switchTab(event,'ordini')">
                 <span class="icon">🛵</span> Ordini
             </button>
-            <button class="tab-btn" onclick="switchTab('pagamenti')">
+            <button class="tab-btn" onclick="switchTab(event,'pagamenti')">
                 <span class="icon">💳</span> Pagamenti
             </button>
-            <button class="tab-btn" onclick="switchTab('dipendenti')">
+            <button class="tab-btn" onclick="switchTab(event,'dipendenti')">
                 <span class="icon">👥</span> Dipendenti
             </button>
-            <button class="tab-btn" onclick="switchTab('report')">
+            <button class="tab-btn" onclick="switchTab(event,'report')">
                 <span class="icon">📊</span> Report
             </button>
-            <button class="tab-btn" onclick="switchTab('inventario')">
+            <button class="tab-btn" onclick="switchTab(event,'inventario')">
                 <span class="icon">📦</span> Inventario
             </button>
         </nav>
@@ -57,26 +57,6 @@
             <div id="menu" class="tab-content active">
                 <div class="section-title">
                     <h2>📋 Menu del Giorno</h2>
-                    <button class="btn-secondary" onclick="toggleAddMenu()">+ Aggiungi Voce</button>
-                </div>
-
-                <!-- Form Aggiungi Voce Menu -->
-                <div id="addMenuForm" class="form-container hidden">
-                    <h3>Aggiungi Nuova Voce al Menu</h3>
-                    <form onsubmit="addMenuItem(event)">
-                        <div class="form-group">
-                            <label>Nome Voce:</label>
-                            <input type="text" id="menuNome" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Prezzo (€):</label>
-                            <input type="number" id="menuPrezzo" step="0.01" required>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">Aggiungi</button>
-                            <button type="button" class="btn-secondary" onclick="toggleAddMenu()">Annulla</button>
-                        </div>
-                    </form>
                 </div>
 
                 <!-- Menu Items Grid -->
@@ -210,31 +190,6 @@
             <div id="dipendenti" class="tab-content">
                 <div class="section-title">
                     <h2>👥 Gestione Dipendenti</h2>
-                    <button class="btn-secondary" onclick="toggleAddDipendente()">+ Aggiungi Dipendente</button>
-                </div>
-
-                <!-- Form Aggiungi Dipendente -->
-                <div id="addDipForm" class="form-container hidden">
-                    <h3>Aggiungi Nuovo Dipendente</h3>
-                    <form onsubmit="addDipendente(event)">
-                        <div class="form-group">
-                            <label>Nome:</label>
-                            <input type="text" id="dipNome" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Turno:</label>
-                            <select id="dipTurno" required>
-                                <option value="">-- Seleziona --</option>
-                                <option value="mattina">Mattina (06:00 - 14:00)</option>
-                                <option value="pomeriggio">Pomeriggio (14:00 - 22:00)</option>
-                                <option value="sera">Sera (22:00 - 06:00)</option>
-                            </select>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">Aggiungi</button>
-                            <button type="button" class="btn-secondary" onclick="toggleAddDipendente()">Annulla</button>
-                        </div>
-                    </form>
                 </div>
 
                 <!-- Lista Dipendenti -->
