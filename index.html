@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Manager - Gestione Bar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🍺 BAR MANAGER</h1>
+                    <p>Sistema Gestione Bar Professionale</p>
+                </div>
+                <div class="header-stats">
+                    <div class="stat">
+                        <span class="stat-label">Ordini Odierni</span>
+                        <span class="stat-value" id="ordiniCount">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Incasso</span>
+                        <span class="stat-value" id="incassoTotal">€0.00</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('menu')">
+                <span class="icon">📋</span> Menu
+            </button>
+            <button class="tab-btn" onclick="switchTab('ordini')">
+                <span class="icon">🛵</span> Ordini
+            </button>
+            <button class="tab-btn" onclick="switchTab('pagamenti')">
+                <span class="icon">💳</span> Pagamenti
+            </button>
+            <button class="tab-btn" onclick="switchTab('dipendenti')">
+                <span class="icon">👥</span> Dipendenti
+            </button>
+            <button class="tab-btn" onclick="switchTab('report')">
+                <span class="icon">📊</span> Report
+            </button>
+            <button class="tab-btn" onclick="switchTab('inventario')">
+                <span class="icon">📦</span> Inventario
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- TAB: MENU -->
+            <div id="menu" class="tab-content active">
+                <div class="section-title">
+                    <h2>📋 Menu del Giorno</h2>
+                    <button class="btn-secondary" onclick="toggleAddMenu()">+ Aggiungi Voce</button>
+                </div>
+
+                <!-- Form Aggiungi Voce Menu -->
+                <div id="addMenuForm" class="form-container hidden">
+                    <h3>Aggiungi Nuova Voce al Menu</h3>
+                    <form onsubmit="addMenuItem(event)">
+                        <div class="form-group">
+                            <label>Nome Voce:</label>
+                            <input type="text" id="menuNome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Prezzo (€):</label>
+                            <input type="number" id="menuPrezzo" step="0.01" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Aggiungi</button>
+                            <button type="button" class="btn-secondary" onclick="toggleAddMenu()">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Menu Items Grid -->
+                <div class="menu-grid" id="menuGrid">
+                    <!-- Items caricati dinamicamente -->
+                </div>
+            </div>
+
+            <!-- TAB: ORDINI -->
+            <div id="ordini" class="tab-content">
+                <div class="section-title">
+                    <h2>🛵 Gestione Ordini</h2>
+                    <button class="btn-primary" onclick="nuovoOrdine()">+ Nuovo Ordine</button>
+                </div>
+
+                <!-- Form Nuovo Ordine -->
+                <div id="newOrderForm" class="form-container hidden">
+                    <h3>Crea Nuovo Ordine</h3>
+                    <form onsubmit="creaOrdine(event)">
+                        <div class="form-group">
+                            <label>Tipo Ordine:</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="tipoOrdine" value="banco" required> Banco
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="tipoOrdine" value="tavolo" required> Tavolo
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Numero Tavolo (se tavolo):</label>
+                            <input type="number" id="numeroTavolo" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Scegli Prodotto:</label>
+                            <select id="prodottoSelect" required>
+                                <option value="">-- Seleziona un prodotto --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantità:</label>
+                            <input type="number" id="quantita" value="1" min="1" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="aggiungiAlOrdine()">Aggiungi al Carrello</button>
+                            <button type="submit" class="btn-primary">Registra Ordine</button>
+                            <button type="button" class="btn-secondary" onclick="annullaOrdine()">Annulla</button>
+                        </div>
+                    </form>
+
+                    <!-- Carrello Ordine -->
+                    <div id="carritoSection" class="carrello-section hidden">
+                        <h4>Articoli nel Carrello</h4>
+                        <div id="carrito" class="carrello-items">
+                            <!-- Items del carrello -->
+                        </div>
+                        <div class="carrello-totale">
+                            <span>Totale:</span>
+                            <span id="totaleCarrello" class="totale-value">€0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista Ordini -->
+                <div class="orders-list">
+                    <h3>Ultimi Ordini Registrati</h3>
+                    <div id="ordiniList" class="orders-table">
+                        <!-- Ordini caricati dinamicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PAGAMENTI -->
+            <div id="pagamenti" class="tab-content">
+                <div class="section-title">
+                    <h2>💳 Elabora Pagamenti</h2>
+                </div>
+
+                <div class="pagamenti-container">
+                    <div class="payment-form">
+                        <h3>Nuovo Pagamento</h3>
+                        <form onsubmit="elaboraPagamento(event)">
+                            <div class="form-group">
+                                <label>ID Ordine:</label>
+                                <input type="number" id="ordineIdPagamento" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Importo (€):</label>
+                                <input type="number" id="importoPagamento" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Metodo Pagamento:</label>
+                                <select id="metodoPagamento" required>
+                                    <option value="">-- Seleziona --</option>
+                                    <option value="carta">Carta Credito</option>
+                                    <option value="contanti">Contanti</option>
+                                    <option value="bancomat">Bancomat</option>
+                                    <option value="paypal">PayPal</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-primary">Elabora Pagamento</button>
+                        </form>
+                    </div>
+
+                    <div class="payment-status">
+                        <h3>Stato Pagamenti Odierni</h3>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <h4>Totale Contanti</h4>
+                                <p class="stat-number" id="totalContanti">€0.00</p>
+                            </div>
+                            <div class="stat-box">
+                                <h4>Totale Carta</h4>
+                                <p class="stat-number" id="totalCarta">€0.00</p>
+                            </div>
+                            <div class="stat-box">
+                                <h4>Pagamenti Elaborati</h4>
+                                <p class="stat-number" id="numPagamenti">0</p>
+                            </div>
+                            <div class="stat-box">
+                                <h4>Incasso Totale</h4>
+                                <p class="stat-number highlight" id="incassoTotale">€0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: DIPENDENTI -->
+            <div id="dipendenti" class="tab-content">
+                <div class="section-title">
+                    <h2>👥 Gestione Dipendenti</h2>
+                    <button class="btn-secondary" onclick="toggleAddDipendente()">+ Aggiungi Dipendente</button>
+                </div>
+
+                <!-- Form Aggiungi Dipendente -->
+                <div id="addDipForm" class="form-container hidden">
+                    <h3>Aggiungi Nuovo Dipendente</h3>
+                    <form onsubmit="addDipendente(event)">
+                        <div class="form-group">
+                            <label>Nome:</label>
+                            <input type="text" id="dipNome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Turno:</label>
+                            <select id="dipTurno" required>
+                                <option value="">-- Seleziona --</option>
+                                <option value="mattina">Mattina (06:00 - 14:00)</option>
+                                <option value="pomeriggio">Pomeriggio (14:00 - 22:00)</option>
+                                <option value="sera">Sera (22:00 - 06:00)</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Aggiungi</button>
+                            <button type="button" class="btn-secondary" onclick="toggleAddDipendente()">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Lista Dipendenti -->
+                <div class="dipendenti-list">
+                    <h3>Dipendenti Registrati</h3>
+                    <div id="dipendentiContainer" class="dipendenti-grid">
+                        <!-- Dipendenti caricati dinamicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: REPORT -->
+            <div id="report" class="tab-content">
+                <div class="section-title">
+                    <h2>📊 Report e Statistiche</h2>
+                </div>
+
+                <div class="report-buttons">
+                    <button class="btn-primary" onclick="generaReportVendite()">📈 Report Vendite</button>
+                    <button class="btn-primary" onclick="generaReportIncassi()">💰 Report Incassi</button>
+                    <button class="btn-secondary" onclick="generaReportInventario()">📦 Report Inventario</button>
+                </div>
+
+                <div id="reportContent" class="report-content">
+                    <!-- Report caricato dinamicamente -->
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <h3>Prodotti Più Venduti</h3>
+                        <div id="topProducts" class="chart">
+                            <!-- Top products dinamici -->
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Vendite per Turno</h3>
+                        <div id="turnoChart" class="chart">
+                            <!-- Turno data dinamici -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: INVENTARIO -->
+            <div id="inventario" class="tab-content">
+                <div class="section-title">
+                    <h2>📦 Gestione Inventario</h2>
+                    <button class="btn-secondary" onclick="toggleAddInventario()">+ Aggiungi Scorte</button>
+                </div>
+
+                <!-- Form Aggiungi Scorte -->
+                <div id="addInventarioForm" class="form-container hidden">
+                    <h3>Aggiungi Scorte Inventario</h3>
+                    <form onsubmit="addInventario(event)">
+                        <div class="form-group">
+                            <label>Prodotto:</label>
+                            <input type="text" id="invProdotto" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantità:</label>
+                            <input type="number" id="invQuantita" min="1" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Aggiungi</button>
+                            <button type="button" class="btn-secondary" onclick="toggleAddInventario()">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Inventario Table -->
+                <div class="inventory-table">
+                    <h3>Stock Attuale</h3>
+                    <table id="inventarioTable" class="table">
+                        <thead>
+                            <tr>
+                                <th>Prodotto</th>
+                                <th>Quantità</th>
+                                <th>Stato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventarioBody">
+                            <!-- Righe inventario dinamiche -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
