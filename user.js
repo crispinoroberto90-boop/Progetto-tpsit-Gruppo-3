@@ -20,14 +20,48 @@ const HARD_CODED_MENU = [
     { id: 17, nome: 'Taralli', prezzo: 1.50, categoria: 'Snack' }
 ];
 
+const HARD_CODED_INVENTORY = HARD_CODED_MENU.reduce((obj, item) => {
+    obj[item.nome] = 100;
+    return obj;
+}, {});
+
 let menuItems = [];
 let cart = [];
+let inventory = {};
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('it-IT', {
         style: 'currency',
         currency: 'EUR'
     }).format(amount);
+}
+
+function getStoredInventory() {
+    const stored = localStorage.getItem('barInventory');
+    return stored ? JSON.parse(stored) : { ...HARD_CODED_INVENTORY };
+}
+
+function saveInventory(data) {
+    localStorage.setItem('barInventory', JSON.stringify(data));
+}
+
+function initializeInventory() {
+    if (!localStorage.getItem('barInventory')) {
+        saveInventory(HARD_CODED_INVENTORY);
+    }
+    inventory = getStoredInventory();
+}
+
+function getInventoryQuantity(nome) {
+    return inventory[nome] || 0;
+}
+
+function decrementInventory(cartItems) {
+    cartItems.forEach(item => {
+        const current = inventory[item.nome] || 0;
+        inventory[item.nome] = Math.max(0, current - item.quantity);
+    });
+    saveInventory(inventory);
 }
 
 async function loadMenuForUser() {
@@ -48,14 +82,18 @@ async function loadMenuForUser() {
     }
 
     menuItems.forEach(item => {
+        const available = getInventoryQuantity(item.nome);
+        const disabled = available <= 0 ? 'disabled' : '';
+        const stockLabel = available <= 0 ? ' (Esaurito)' : ` (${available} disponibili)`;
+
         const card = document.createElement('div');
         card.className = 'menu-card';
         card.innerHTML = `
             <div class="category">${item.categoria}</div>
-            <h4>${item.nome}</h4>
+            <h4>${item.nome}${stockLabel}</h4>
             <div class="price">${formatCurrency(item.prezzo)}</div>
             <div class="menu-card-actions">
-                <button class="btn-primary" onclick="addToCart(${item.id})">Aggiungi</button>
+                <button class="btn-primary" onclick="addToCart(${item.id})" ${disabled}>Aggiungi</button>
             </div>
         `;
         menuGrid.appendChild(card);
@@ -65,6 +103,13 @@ async function loadMenuForUser() {
 function addToCart(itemId) {
     const item = menuItems.find(p => p.id === itemId);
     if (!item) return;
+
+    const available = getInventoryQuantity(item.nome);
+    const currentInCart = cart.find(c => c.id === itemId)?.quantity || 0;
+    if (currentInCart + 1 > available) {
+        showNotification(`❌ Scorte insufficienti per ${item.nome}`, 'error');
+        return;
+    }
 
     const existing = cart.find(c => c.id === itemId);
     if (existing) {
@@ -121,6 +166,11 @@ function renderCart() {
 function updateQuantity(index, change) {
     const item = cart[index];
     if (!item) return;
+    const available = getInventoryQuantity(item.nome);
+    if (change > 0 && item.quantity + 1 > available) {
+        showNotification(`❌ Scorte insufficienti per ${item.nome}`, 'error');
+        return;
+    }
     item.quantity += change;
     if (item.quantity <= 0) {
         cart.splice(index, 1);
@@ -158,34 +208,22 @@ async function placeOrder() {
         return;
     }
 
-    try {
-        const orderResponse = await fetch(`${API_BASE_URL}/ordini`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tipo })
-        });
-
-        const ordine = await orderResponse.json();
-        const promises = cart.map(item => fetch(`${API_BASE_URL}/ordini/${ordine.id}/items`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: item.id,
-                nome: item.nome,
-                price: item.prezzo,
-                quantity: item.quantity,
-                categoria: item.categoria
-            })
-        }));
-
-        await Promise.all(promises);
-
-        clearCart();
-        showNotification(`✅ Ordine inviato! Numero ordine: #${ordine.id}`, 'success');
-    } catch (error) {
-        console.error('Errore invio ordine:', error);
-        showNotification('❌ Errore durante l\'invio dell\'ordine', 'error');
+    // Controlla disponibilità prima di confermare
+    for (const item of cart) {
+        const available = getInventoryQuantity(item.nome);
+        if (item.quantity > available) {
+            showNotification(`❌ Scorte insufficienti per ${item.nome}`, 'error');
+            return;
+        }
     }
+
+    decrementInventory(cart);
+    saveInventory(inventory);
+    initializeInventory();
+    loadMenuForUser();
+    clearCart();
+
+    showNotification('✅ Ordine inviato! Scorte aggiornate.', 'success');
 }
 
 function showNotification(message, type = 'info') {
@@ -208,6 +246,7 @@ function showNotification(message, type = 'info') {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    initializeInventory();
     loadMenuForUser();
     renderCart();
 });

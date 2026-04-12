@@ -42,6 +42,11 @@ const HARD_CODED_MENU = [
     { id: 17, nome: 'Taralli', prezzo: 1.50, categoria: 'Snack' }
 ];
 
+const HARD_CODED_INVENTORY = HARD_CODED_MENU.reduce((obj, item) => {
+    obj[item.nome] = 100;
+    return obj;
+}, {});
+
 // ============================================
 // FUNZIONI DI UTILITÀ
 // ============================================
@@ -51,6 +56,35 @@ function formatCurrency(amount) {
         style: 'currency',
         currency: 'EUR'
     }).format(amount);
+}
+
+function getStoredInventory() {
+    const stored = localStorage.getItem('barInventory');
+    return stored ? JSON.parse(stored) : { ...HARD_CODED_INVENTORY };
+}
+
+function saveInventory(inventory) {
+    localStorage.setItem('barInventory', JSON.stringify(inventory));
+}
+
+function initializeInventory() {
+    if (!localStorage.getItem('barInventory')) {
+        saveInventory(HARD_CODED_INVENTORY);
+    }
+    barData.inventario = getStoredInventory();
+}
+
+function decrementInventoryForOrder(cartItems) {
+    cartItems.forEach(item => {
+        const name = item.nome;
+        const current = barData.inventario[name] || 0;
+        barData.inventario[name] = Math.max(0, current - item.quantita);
+    });
+    saveInventory(barData.inventario);
+}
+
+function getInventoryQuantity(nome) {
+    return barData.inventario[nome] || 0;
 }
 
 function switchTab(event, tabName) {
@@ -599,41 +633,35 @@ function updateTopProductsChart(vendite) {
 // INVENTARIO - FUNZIONI
 // ============================================
 
-async function loadInventario() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/inventario`);
-        barData.inventario = await response.json();
+function loadInventario() {
+    barData.inventario = getStoredInventory();
+    const tbody = document.getElementById('inventarioBody');
+    tbody.innerHTML = '';
+
+    Object.entries(barData.inventario).forEach(([prodotto, quantita]) => {
+        let status = '✅ OK';
+        let statusClass = 'status-ok';
         
-        const tbody = document.getElementById('inventarioBody');
-        tbody.innerHTML = '';
+        if (quantita <= 10) {
+            status = '⚠️ Basso';
+            statusClass = 'status-low';
+        } else if (quantita <= 25) {
+            status = '⚠️ Medio';
+            statusClass = 'status-medium';
+        }
 
-        Object.entries(barData.inventario).forEach(([prodotto, quantita]) => {
-            let status = '✅ OK';
-            let statusClass = 'status-ok';
-            
-            if (quantita <= 10) {
-                status = '⚠️ Basso';
-                statusClass = 'status-low';
-            } else if (quantita <= 25) {
-                status = '⚠️ Medio';
-                statusClass = 'status-medium';
-            }
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><strong>${prodotto}</strong></td>
-                <td>${quantita}</td>
-                <td><span class="${statusClass}">${status}</span></td>
-                <td>
-                    <button class="btn-primary" onclick="updateInventarioBtn('${prodotto}', 10)">+10</button>
-                    <button class="btn-secondary" onclick="updateInventarioBtn('${prodotto}', -5)">-5</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    } catch (error) {
-        console.error('Errore caricamento inventario:', error);
-    }
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${prodotto}</strong></td>
+            <td>${quantita}</td>
+            <td><span class="${statusClass}">${status}</span></td>
+            <td>
+                <button class="btn-primary" onclick="updateInventarioBtn('${prodotto}', 10)">+10</button>
+                <button class="btn-secondary" onclick="updateInventarioBtn('${prodotto}', -5)">-5</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 function toggleAddInventario() {
@@ -648,58 +676,22 @@ function addInventario(event) {
     const quantita = parseInt(document.getElementById('invQuantita').value);
 
     if (prodotto && quantita > 0) {
-        fetch(`${API_BASE_URL}/inventario/add`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                prodotto: prodotto,
-                quantita: quantita
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('addInventarioForm').reset();
-            toggleAddInventario();
-            loadInventario();
-            showNotification(`✅ Scorte aggiunte: ${prodotto} +${quantita}`, 'success');
-        })
-        .catch(error => {
-            console.error('Errore:', error);
-            showNotification('❌ Errore nell\'aggiunta delle scorte', 'error');
-        });
+        barData.inventario = getStoredInventory();
+        barData.inventario[prodotto] = (barData.inventario[prodotto] || 0) + quantita;
+        saveInventory(barData.inventario);
+        document.getElementById('addInventarioForm').reset();
+        toggleAddInventario();
+        loadInventario();
+        showNotification(`✅ Scorte aggiunte: ${prodotto} +${quantita}`, 'success');
     }
 }
 
 function updateInventarioBtn(prodotto, change) {
-    if (change > 0) {
-        fetch(`${API_BASE_URL}/inventario/add`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                prodotto: prodotto,
-                quantita: change
-            })
-        })
-        .then(() => loadInventario())
-        .catch(error => console.error('Errore:', error));
-    } else {
-        fetch(`${API_BASE_URL}/inventario/remove`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                prodotto: prodotto,
-                quantita: Math.abs(change)
-            })
-        })
-        .then(() => loadInventario())
-        .catch(error => console.error('Errore:', error));
-    }
+    barData.inventario = getStoredInventory();
+    const current = barData.inventario[prodotto] || 0;
+    barData.inventario[prodotto] = Math.max(0, current + change);
+    saveInventory(barData.inventario);
+    loadInventario();
 }
 
 // ============================================
@@ -754,6 +746,7 @@ function showNotification(message, type = 'info') {
 // ============================================
 
 function initializePage() {
+    initializeInventory();
     loadMenu();
     loadDipendenti();
     loadOrders();
