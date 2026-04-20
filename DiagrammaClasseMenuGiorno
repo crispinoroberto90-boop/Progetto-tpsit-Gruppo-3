@@ -1,0 +1,13 @@
+class MenuGiorno {
+    + static List<MenuItem> getMenuDelGiorno()
+    + static void stampaMenuDelGiorno()
+}
+
+class MenuItem {
+    - String nome
+    - double prezzo
+
+    + MenuItem(String nome, double prezzo)
+    + String getNome()
+    + double getPrezzo()
+}
