@@ -1,0 +1,92 @@
+class Bar {
+    - List<MenuItem> vociMenu
+    - Map<String, Integer> inventario
+    - List<Dipendente> dipendenti
+    - List<Order> ordini
+    - PaymentSystem sistemaPagamento
+    - ReportGenerator generatoreReport
+    - Map<String, String> credenzialiUtente
+    - boolean backupAbilitato
+
+    + Bar()
+
+    + void registraOrdine(Order ordine)
+    + boolean elaboraPagamento(Payment pagamento)
+
+    + void aggiungiVoceMenu(MenuItem voce)
+    + void rimuoviVoceMenu(MenuItem voce)
+
+    + void aggiornaInventario(Order ordine)
+    + void aggiungiInventario(String prodotto, int quantita)
+
+    + void aggiungiDipendente(Dipendente dipendente)
+    + void rimuoviDipendente(Dipendente dipendente)
+    + void assegnaTurno(Dipendente dipendente, String turno)
+
+    + void generaReportVendite()
+    + void generaReportIncassi()
+
+    + boolean autenticaUtente(String nomeUtente, String password)
+    + void aggiungiCredenzialeUtente(String nomeUtente, String password)
+
+    + void eseguiBackup()
+    + void aggiungiFiliale(Bar filiale)
+
+    + List<MenuItem> getVociMenu()
+    + Map<String, Integer> getInventario()
+    + List<Dipendente> getDipendenti()
+    + List<Order> getOrdini()
+
+    + double calcolaTotaleOrdine(Order ordine)
+    + void mostraDettagliOrdine(Order ordine)
+    + void mostraRiepilogoOrdineInCostruzione(Order ordine)
+    + void mostraRiepilogoOrdini()
+}
+
+class MenuItem {
+    - String nome
+    - double prezzo
+
+    + String getNome()
+    + double getPrezzo()
+}
+
+class Order {
+    - int id
+    - String tipo
+    - List<OrderItem> elementi
+    - Date dataOra
+
+    + int getId()
+    + String getTipo()
+    + List<OrderItem> getElementi()
+    + String getDataOraFormattata()
+}
+
+class OrderItem {
+    - String nomeProdotto
+    - int quantita
+
+    + String getNomeProdotto()
+    + int getQuantita()
+}
+
+class Dipendente {
+    - String nome
+    - String turno
+
+    + void setTurno(String turno)
+}
+
+class Payment {
+    - double importo
+}
+
+class PaymentSystem {
+    + boolean elabora(Payment pagamento)
+}
+
+class ReportGenerator {
+    + void generaReportVendite(List<Order> ordini)
+    + void generaReportIncassi(List<Order> ordini)
+}
