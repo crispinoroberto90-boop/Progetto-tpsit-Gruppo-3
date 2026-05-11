@@ -9,7 +9,7 @@ public class Main {
     private static final String PASSWORD_SICUREZZA = "barbello";
     
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner tastiera = new Scanner(System.in);
         Bar bar = new Bar();
         Order ordineCorrente = null; // Per creare ordini step by step
 
@@ -37,42 +37,42 @@ public class Main {
             System.out.println("0. Esci");
 
             System.out.print("Scegli: ");
-            int scelta = scanner.nextInt();
-            scanner.nextLine(); // Per il newline
+            int scelta = tastiera.nextInt();
+            tastiera.nextLine(); // Per il newline
 
             switch (scelta) {
                 case 1:
                     // Operazione sensibile - richiede password
-                    if (!verificaPassword(scanner)) {
+                    if (!verificaPassword(tastiera)) {
                         break;
                     }
                     System.out.print("Nome voce: ");
-                    String nomeVoce = scanner.nextLine();
+                    String nomeVoce = tastiera.nextLine();
                     System.out.print("Prezzo: ");
-                    double prezzo = scanner.nextDouble();
+                    double prezzo = tastiera.nextDouble();
                     bar.aggiungiVoceMenu(new MenuItem(nomeVoce, prezzo));
                     System.out.println("Voce aggiunta!");
                     break;
                 case 2:
                     System.out.print("Nome voce da rimuovere: ");
-                    String nomeRimuovi = scanner.nextLine();
+                    String nomeRimuovi = tastiera.nextLine();
                     // Trova e rimuovi (semplificato)
                     bar.getVociMenu().removeIf(v -> v.getNome().equals(nomeRimuovi));
                     System.out.println("Voce rimossa!");
                     break;
                 case 3:
                     System.out.print("Nome dipendente: ");
-                    String nomeDip = scanner.nextLine();
+                    String nomeDip = tastiera.nextLine();
                     Dipendente dip = new Dipendente(nomeDip);
                     bar.aggiungiDipendente(dip);
                     System.out.print("Turno (es. mattina): ");
-                    String turno = scanner.nextLine();
+                    String turno = tastiera.nextLine();
                     bar.assegnaTurno(dip, turno);
                     System.out.println("Dipendente aggiunto!");
                     break;
                 case 4:
                     System.out.print("Tipo ordine (banco/tavolo): ");
-                    String tipo = scanner.nextLine();
+                    String tipo = tastiera.nextLine();
                     ordineCorrente = new Order(tipo);
                     System.out.println("Ordine creato! Tipo: " + tipo);
                     
@@ -87,7 +87,7 @@ public class Main {
                             System.out.println((i + 1) + ". " + item.getNome() + " (" + item.getPrezzo() + "€)");
                         }
                         System.out.print("Scegli numero prodotto (0 per tornare al menu): ");
-                        int sceltaProd = scanner.nextInt();
+                        int sceltaProd = tastiera.nextInt();
                         
                         if (sceltaProd == 0) {
                             // Torna al menu principale
@@ -98,7 +98,7 @@ public class Main {
                         if (sceltaProd > 0 && sceltaProd <= menuGiorno.size()) {
                             MenuItem itemScelto = menuGiorno.get(sceltaProd - 1);
                             System.out.print("Quantita: ");
-                            int quant = scanner.nextInt();
+                            int quant = tastiera.nextInt();
                             ordineCorrente.aggiungiElemento(new OrderItem(itemScelto.getNome(), quant));
                             System.out.println("Elemento aggiunto: " + itemScelto.getNome() + " x" + quant);
                             
@@ -107,7 +107,7 @@ public class Main {
                             
                             // Chiedi se continuare o confermare
                             System.out.print("Premi 5 per aggiungere altri elementi, 6 per confermare e registrare: ");
-                            int sceltaContinua = scanner.nextInt();
+                            int sceltaContinua = tastiera.nextInt();
                             
                             if (sceltaContinua == 6) {
                                 // Registra l'ordine
@@ -137,11 +137,11 @@ public class Main {
                         System.out.println((i + 1) + ". " + item.getNome() + " (" + item.getPrezzo() + "€)");
                     }
                     System.out.print("Scegli numero prodotto (0 per annullare): ");
-                    int sceltaProd = scanner.nextInt();
+                    int sceltaProd = tastiera.nextInt();
                     if (sceltaProd > 0 && sceltaProd <= menuGiorno.size()) {
                         MenuItem itemScelto = menuGiorno.get(sceltaProd - 1);
                         System.out.print("Quantita: ");
-                        int quant = scanner.nextInt();
+                        int quant = tastiera.nextInt();
                         ordineCorrente.aggiungiElemento(new OrderItem(itemScelto.getNome(), quant));
                         System.out.println("Elemento aggiunto: " + itemScelto.getNome() + " x" + quant);
                         // Mostra il riepilogo dell'ordine in costruzione
@@ -165,10 +165,10 @@ public class Main {
                     break;
                 case 7:
                     System.out.print("Importo: ");
-                    double imp = scanner.nextDouble();
-                    scanner.nextLine();
+                    double imp = tastiera.nextDouble();
+                    tastiera.nextLine();
                     System.out.print("Metodo (contanti/digitale): ");
-                    String met = scanner.nextLine();
+                    String met = tastiera.nextLine();
                     Payment pag = new Payment(imp, met);
                     boolean ok = bar.elaboraPagamento(pag);
                     System.out.println("Pagamento " + (ok ? "OK" : "Errore"));
@@ -181,13 +181,13 @@ public class Main {
                     break;
                 case 10:
                     // Operazione sensibile - richiede password
-                    if (!verificaPassword(scanner)) {
+                    if (!verificaPassword(tastiera)) {
                         break;
                     }
                     System.out.print("Prodotto: ");
-                    String prodInv = scanner.nextLine();
+                    String prodInv = tastiera.nextLine();
                     System.out.print("Quantita: ");
-                    int quantInv = scanner.nextInt();
+                    int quantInv = tastiera.nextInt();
                     bar.aggiungiInventario(prodInv, quantInv);
                     System.out.println("Scorte aggiunte!");
                     break;
@@ -220,7 +220,7 @@ public class Main {
                             System.out.println("ID: " + o.getId() + " - " + o.getDataOraFormattata());
                         }
                         System.out.print("Inserisci ID ordine: ");
-                        int idOrdine = scanner.nextInt();
+                        int idOrdine = tastiera.nextInt();
                         boolean trovato = false;
                         for (Order o : bar.getOrdini()) {
                             if (o.getId() == idOrdine) {
@@ -236,7 +236,7 @@ public class Main {
                     break;
                 case 17:
                     // Operazione sensibile - richiede password
-                    if (!verificaPassword(scanner)) {
+                    if (!verificaPassword(tastiera)) {
                         break;
                     }
                     // Carica il menu del giorno nel bar (svuota il menu attuale e carica quello del giorno)
@@ -249,7 +249,7 @@ public class Main {
                     break;
                 case 0:
                     System.out.println("Ciao!");
-                    scanner.close();
+                    tastiera.close();
                     return;
                 default:
                     System.out.println("Scelta non valida!");
@@ -258,9 +258,9 @@ public class Main {
     }
     
     // Metodo per verificare la password di sicurezza
-    private static boolean verificaPassword(Scanner scanner) {
+    private static boolean verificaPassword(Scanner tastiera) {
         System.out.print("Inserisci password di sicurezza: ");
-        String passwordInserita = scanner.nextLine();
+        String passwordInserita = tastiera.nextLine();
         if (passwordInserita.equals(PASSWORD_SICUREZZA)) {
             System.out.println("Password corretta!");
             return true;
